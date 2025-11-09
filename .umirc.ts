@@ -2,6 +2,10 @@ import path from "path";
 import { defineConfig } from "umi";
 
 export default defineConfig({
+  devServer: {
+    host: '0.0.0.0',
+    port: 8000,
+  },
   dynamicImport: {
     loading: "@/components/LoadingCp"
   },
