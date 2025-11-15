@@ -27,11 +27,21 @@
           {{ formatDate(row.createdAt) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="300" fixed="right">
+      <el-table-column label="操作" width="380" fixed="right">
         <template #default="{ row }">
           <el-button size="small" @click="editDesign(row)">编辑</el-button>
           <el-button size="small" @click="previewDesign(row)">预览</el-button>
-          <el-button size="small" @click="exportDesign(row)">导出</el-button>
+          <el-dropdown size="small" @command="(cmd) => handleExport(row, cmd)">
+            <el-button size="small">
+              导出<el-icon class="el-icon--right"><arrow-down /></el-icon>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="json">导出JSON</el-dropdown-item>
+                <el-dropdown-item command="html">导出HTML</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
           <el-button size="small" type="danger" @click="deleteDesign(row)">删除</el-button>
         </template>
       </el-table-column>
@@ -45,10 +55,12 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, ArrowDown } from '@element-plus/icons-vue'
 import { getMyDesigns, deleteDesign as deleteDesignApi } from '@/api/design'
+import { useUserStore } from '@/store/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 const loading = ref(false)
 const designs = ref([])
 
@@ -72,11 +84,37 @@ const editDesign = (design) => {
 }
 
 const previewDesign = (design) => {
-  ElMessage.info('预览功能开发中...')
+  // 打开预览窗口
+  const previewUrl = `/preview?data=${encodeURIComponent(JSON.stringify(design.content))}`
+  window.open(previewUrl, '_blank', 'width=400,height=700')
 }
 
-const exportDesign = (design) => {
-  ElMessage.info('导出功能开发中...')
+const handleExport = (design, type) => {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+  const token = userStore.token
+
+  if (type === 'json') {
+    // 导出 JSON
+    const url = `${baseUrl}/api/designs/${design.id}/export`
+    downloadFile(url, token)
+  } else if (type === 'html') {
+    // 导出 HTML
+    const url = `${baseUrl}/api/designs/${design.id}/export-html`
+    downloadFile(url, token)
+  }
+}
+
+const downloadFile = (url, token) => {
+  // 创建隐藏的 iframe 下载文件
+  const iframe = document.createElement('iframe')
+  iframe.style.display = 'none'
+  iframe.src = url + `?token=${token}`
+  document.body.appendChild(iframe)
+
+  // 5秒后移除 iframe
+  setTimeout(() => {
+    document.body.removeChild(iframe)
+  }, 5000)
 }
 
 const deleteDesign = (design) => {

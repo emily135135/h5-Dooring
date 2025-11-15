@@ -15,6 +15,12 @@ const routes = [
     meta: { requiresAuth: false }
   },
   {
+    path: '/preview',
+    name: 'Preview',
+    component: () => import('@/views/Preview.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/',
     name: 'Layout',
     component: () => import('@/views/Layout.vue'),

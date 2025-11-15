@@ -59,6 +59,15 @@
             placeholder="请输入模板描述"
           />
         </el-form-item>
+        <el-form-item label="缩略图">
+          <div class="thumbnail-upload">
+            <div v-if="form.thumbnail" class="thumbnail-preview">
+              <img :src="getThumbnailUrl(form.thumbnail)" alt="缩略图" />
+              <el-button size="small" type="danger" @click="removeThumbnail">删除</el-button>
+            </div>
+            <el-button v-else @click="showImagePicker = true">选择缩略图</el-button>
+          </div>
+        </el-form-item>
         <el-form-item label="可见性" prop="isPublic">
           <el-radio-group v-model="form.isPublic">
             <el-radio :label="true">公共（所有用户可见）</el-radio>
@@ -71,6 +80,14 @@
         <el-button type="primary" @click="handleSubmit">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 图片选择器 -->
+    <ImagePicker
+      v-model="showImagePicker"
+      :multiple="false"
+      type="thumbnails"
+      @select="handleSelectThumbnail"
+    />
   </div>
 </template>
 
@@ -86,6 +103,7 @@ import {
   deleteTemplate as deleteTemplateApi,
   toggleTemplateVisibility
 } from '@/api/template'
+import ImagePicker from '@/components/ImagePicker.vue'
 
 const router = useRouter()
 const loading = ref(false)
@@ -93,11 +111,13 @@ const templates = ref([])
 const dialogVisible = ref(false)
 const dialogMode = ref('create')
 const formRef = ref(null)
+const showImagePicker = ref(false)
 
 const form = reactive({
   id: null,
   name: '',
   description: '',
+  thumbnail: '',
   isPublic: false
 })
 
@@ -122,6 +142,7 @@ const showCreateDialog = () => {
   form.id = null
   form.name = ''
   form.description = ''
+  form.thumbnail = ''
   form.isPublic = false
   dialogVisible.value = true
 }
@@ -131,8 +152,23 @@ const editTemplate = (template) => {
   form.id = template.id
   form.name = template.name
   form.description = template.description
+  form.thumbnail = template.thumbnail || ''
   form.isPublic = template.isPublic
   dialogVisible.value = true
+}
+
+const handleSelectThumbnail = (url) => {
+  form.thumbnail = url
+}
+
+const removeThumbnail = () => {
+  form.thumbnail = ''
+}
+
+const getThumbnailUrl = (url) => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${url}`
 }
 
 const designTemplate = (template) => {
@@ -199,5 +235,23 @@ onMounted(() => {
 <style scoped>
 .admin-templates-container {
   padding: 20px;
+}
+
+.thumbnail-upload {
+  width: 100%;
+}
+
+.thumbnail-preview {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.thumbnail-preview img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #dcdfe6;
 }
 </style>

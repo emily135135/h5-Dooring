@@ -20,7 +20,7 @@
       <el-col :span="6" v-for="template in templates" :key="template.id">
         <el-card class="template-card" :body-style="{ padding: '0px' }">
           <div class="template-image">
-            <img :src="template.thumbnail || '/default-template.png'" alt="模板预览" />
+            <img :src="getThumbnailUrl(template.thumbnail)" alt="模板预览" />
           </div>
           <div class="template-info">
             <h3>{{ template.name }}</h3>
@@ -86,6 +86,15 @@ const useTemplate = (template) => {
 
 const previewTemplate = (template) => {
   ElMessage.info('预览功能开发中...')
+}
+
+const getThumbnailUrl = (url) => {
+  if (!url) {
+    // 返回默认缩略图
+    return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1Zjdm YSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM5MDkzOTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7mo6fnv4jlm77niYc8L3RleHQ+PC9zdmc+'
+  }
+  if (url.startsWith('http')) return url
+  return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${url}`
 }
 
 onMounted(() => {

@@ -1,5 +1,6 @@
 const Design = require('../models/Design')
 const { success, error } = require('../utils/response')
+const { generateHTML } = require('../utils/htmlGenerator')
 
 // 获取我的装修方案列表
 exports.getMyDesigns = async (req, res) => {
@@ -86,7 +87,7 @@ exports.deleteDesign = async (req, res) => {
   }
 }
 
-// 导出装修方案
+// 导出装修方案（JSON）
 exports.exportDesign = async (req, res) => {
   try {
     const { id } = req.params
@@ -104,5 +105,29 @@ exports.exportDesign = async (req, res) => {
   } catch (err) {
     console.error('导出装修方案错误:', err)
     error(res, '导出失败', 500)
+  }
+}
+
+// 导出为 HTML
+exports.exportHTML = async (req, res) => {
+  try {
+    const { id } = req.params
+    const design = await Design.findById(id, req.user.id)
+
+    if (!design) {
+      return error(res, '装修方案不存在', 404)
+    }
+
+    // 生成 HTML
+    const html = generateHTML(design.content)
+
+    // 设置响应头
+    res.setHeader('Content-Type', 'text/html; charset=utf-8')
+    res.setHeader('Content-Disposition', `attachment; filename=${design.name || 'design'}.html`)
+
+    res.send(html)
+  } catch (err) {
+    console.error('导出 HTML 错误:', err)
+    error(res, '导出 HTML 失败', 500)
   }
 }

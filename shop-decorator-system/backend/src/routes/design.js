@@ -20,7 +20,10 @@ router.put('/:id', authMiddleware, designController.updateDesign)
 // 删除装修方案
 router.delete('/:id', authMiddleware, designController.deleteDesign)
 
-// 导出装修方案
+// 导出装修方案（JSON）
 router.get('/:id/export', authMiddleware, designController.exportDesign)
+
+// 导出为 HTML
+router.get('/:id/export-html', authMiddleware, designController.exportHTML)
 
 module.exports = router
