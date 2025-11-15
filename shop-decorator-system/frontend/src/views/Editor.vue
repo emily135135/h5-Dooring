@@ -10,6 +10,12 @@
       </div>
       <div class="editor-actions">
         <el-button @click="handlePreview">预览</el-button>
+        <el-button
+          v-if="designId"
+          @click="showVersionHistory = true"
+        >
+          版本历史
+        </el-button>
         <el-button type="primary" @click="handleSave" :loading="saving">保存</el-button>
       </div>
     </div>
@@ -27,6 +33,14 @@
         :style="{ display: editorReady ? 'block' : 'none' }"
       ></iframe>
     </div>
+
+    <!-- 版本历史 -->
+    <VersionHistory
+      v-if="designId"
+      v-model:visible="showVersionHistory"
+      :design-id="designId"
+      @restored="handleVersionRestored"
+    />
   </div>
 </template>
 
@@ -38,6 +52,7 @@ import { ArrowLeft } from '@element-plus/icons-vue'
 import { getDesignDetail, saveDesign, updateDesign } from '@/api/design'
 import { getTemplateDetail } from '@/api/template'
 import { EditorBridge, MESSAGE_TYPES } from '@/utils/editorBridge'
+import VersionHistory from '@/components/VersionHistory.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -48,6 +63,7 @@ const editorIframe = ref(null)
 const editorReady = ref(false)
 const saving = ref(false)
 const hasUnsavedChanges = ref(false)
+const showVersionHistory = ref(false)
 
 // 编辑器 URL - 指向 h5-Dooring 编辑器
 const editorUrl = ref('http://localhost:8000/editor')
@@ -182,6 +198,21 @@ const handleSave = async () => {
     ElMessage.error('保存失败')
   } finally {
     saving.value = false
+  }
+}
+
+// 版本恢复后重新加载
+const handleVersionRestored = async () => {
+  try {
+    const data = await getDesignDetail(designId.value)
+    designData.value = data.content
+    if (bridge && editorReady.value) {
+      bridge.loadData(data.content)
+    }
+    hasUnsavedChanges.value = false
+  } catch (error) {
+    console.error('重新加载失败:', error)
+    ElMessage.error('重新加载失败')
   }
 }
 

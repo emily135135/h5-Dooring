@@ -27,10 +27,11 @@
           {{ formatDate(row.createdAt) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="380" fixed="right">
+      <el-table-column label="操作" width="460" fixed="right">
         <template #default="{ row }">
           <el-button size="small" @click="editDesign(row)">编辑</el-button>
           <el-button size="small" @click="previewDesign(row)">预览</el-button>
+          <el-button size="small" @click="showVersionHistory(row)">版本历史</el-button>
           <el-dropdown size="small" @command="(cmd) => handleExport(row, cmd)">
             <el-button size="small">
               导出<el-icon class="el-icon--right"><arrow-down /></el-icon>
@@ -48,6 +49,14 @@
     </el-table>
 
     <el-empty v-if="!loading && designs.length === 0" description="暂无装修方案" />
+
+    <!-- 版本历史 -->
+    <VersionHistory
+      v-if="currentDesignId"
+      v-model:visible="versionHistoryVisible"
+      :design-id="currentDesignId"
+      @restored="handleVersionRestored"
+    />
   </div>
 </template>
 
@@ -58,11 +67,14 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, ArrowDown } from '@element-plus/icons-vue'
 import { getMyDesigns, deleteDesign as deleteDesignApi } from '@/api/design'
 import { useUserStore } from '@/store/user'
+import VersionHistory from '@/components/VersionHistory.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 const loading = ref(false)
 const designs = ref([])
+const versionHistoryVisible = ref(false)
+const currentDesignId = ref(null)
 
 const loadDesigns = async () => {
   try {
@@ -135,6 +147,17 @@ const deleteDesign = (design) => {
 
 const formatDate = (date) => {
   return new Date(date).toLocaleString('zh-CN')
+}
+
+// 显示版本历史
+const showVersionHistory = (design) => {
+  currentDesignId.value = design.id
+  versionHistoryVisible.value = true
+}
+
+// 版本恢复后刷新列表
+const handleVersionRestored = () => {
+  loadDesigns()
 }
 
 onMounted(() => {

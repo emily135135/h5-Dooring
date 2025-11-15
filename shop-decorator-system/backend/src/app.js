@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth')
 const templateRoutes = require('./routes/template')
 const designRoutes = require('./routes/design')
 const uploadRoutes = require('./routes/upload')
+const versionRoutes = require('./routes/version')
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -24,6 +25,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/templates', templateRoutes)
 app.use('/api/designs', designRoutes)
 app.use('/api/upload', uploadRoutes)
+app.use('/api', versionRoutes)
 
 // 健康检查
 app.get('/api/health', (req, res) => {

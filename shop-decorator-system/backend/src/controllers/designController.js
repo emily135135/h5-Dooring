@@ -1,4 +1,5 @@
 const Design = require('../models/Design')
+const DesignVersion = require('../models/DesignVersion')
 const { success, error } = require('../utils/response')
 const { generateHTML } = require('../utils/htmlGenerator')
 
@@ -54,11 +55,25 @@ exports.createDesign = async (req, res) => {
 exports.updateDesign = async (req, res) => {
   try {
     const { id } = req.params
-    const { name, description, content } = req.body
+    const { name, description, content, createVersion } = req.body
 
     const design = await Design.findById(id, req.user.id)
     if (!design) {
       return error(res, '装修方案不存在', 404)
+    }
+
+    // 如果需要创建版本，先保存当前版本到历史记录
+    if (createVersion !== false) {
+      try {
+        await DesignVersion.createVersion({
+          designId: parseInt(id),
+          content: design.content,
+          description: req.body.versionDescription || '自动保存',
+          createdBy: req.user.id
+        })
+      } catch (versionErr) {
+        console.error('创建版本失败（继续执行更新）:', versionErr)
+      }
     }
 
     await Design.update(id, { name, description, content }, req.user.id)
